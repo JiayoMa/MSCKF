@@ -334,46 +334,81 @@ classdef KalmanNetNN < handle
         
         function loadModel(obj, filename)
             % Load model parameters from file
-            data = load(filename);
-            modelParams = data.modelParams;
+            % Input:
+            %   filename: Path to the model file (.mat)
             
-            obj.stateDim = modelParams.stateDim;
-            obj.obsDim = modelParams.obsDim;
-            obj.hiddenDim = modelParams.hiddenDim;
+            % Check if file exists
+            if ~exist(filename, 'file')
+                error('KalmanNetNN:FileNotFound', ...
+                    'Model file not found: %s\nPlease train the model first using trainKalmanNet.m', filename);
+            end
             
-            % GRU 1 parameters
-            obj.W_z1 = modelParams.W_z1;
-            obj.U_z1 = modelParams.U_z1;
-            obj.b_z1 = modelParams.b_z1;
-            obj.W_r1 = modelParams.W_r1;
-            obj.U_r1 = modelParams.U_r1;
-            obj.b_r1 = modelParams.b_r1;
-            obj.W_h1 = modelParams.W_h1;
-            obj.U_h1 = modelParams.U_h1;
-            obj.b_h1 = modelParams.b_h1;
-            
-            % GRU 2 parameters
-            obj.W_z2 = modelParams.W_z2;
-            obj.U_z2 = modelParams.U_z2;
-            obj.b_z2 = modelParams.b_z2;
-            obj.W_r2 = modelParams.W_r2;
-            obj.U_r2 = modelParams.U_r2;
-            obj.b_r2 = modelParams.b_r2;
-            obj.W_h2 = modelParams.W_h2;
-            obj.U_h2 = modelParams.U_h2;
-            obj.b_h2 = modelParams.b_h2;
-            
-            % FC layers
-            obj.W_fc1 = modelParams.W_fc1;
-            obj.b_fc1 = modelParams.b_fc1;
-            obj.W_fc2 = modelParams.W_fc2;
-            obj.b_fc2 = modelParams.b_fc2;
-            
-            obj.trained = modelParams.trained;
-            
-            obj.resetHiddenStates();
-            
-            fprintf('Model loaded from %s\n', filename);
+            try
+                data = load(filename);
+                
+                if ~isfield(data, 'modelParams')
+                    error('KalmanNetNN:InvalidFormat', ...
+                        'Invalid model file format: missing modelParams structure');
+                end
+                
+                modelParams = data.modelParams;
+                
+                % Validate required fields
+                requiredFields = {'stateDim', 'obsDim', 'hiddenDim', 'W_z1', 'W_fc2'};
+                for i = 1:length(requiredFields)
+                    if ~isfield(modelParams, requiredFields{i})
+                        error('KalmanNetNN:InvalidFormat', ...
+                            'Invalid model file: missing field %s', requiredFields{i});
+                    end
+                end
+                
+                obj.stateDim = modelParams.stateDim;
+                obj.obsDim = modelParams.obsDim;
+                obj.hiddenDim = modelParams.hiddenDim;
+                
+                % GRU 1 parameters
+                obj.W_z1 = modelParams.W_z1;
+                obj.U_z1 = modelParams.U_z1;
+                obj.b_z1 = modelParams.b_z1;
+                obj.W_r1 = modelParams.W_r1;
+                obj.U_r1 = modelParams.U_r1;
+                obj.b_r1 = modelParams.b_r1;
+                obj.W_h1 = modelParams.W_h1;
+                obj.U_h1 = modelParams.U_h1;
+                obj.b_h1 = modelParams.b_h1;
+                
+                % GRU 2 parameters
+                obj.W_z2 = modelParams.W_z2;
+                obj.U_z2 = modelParams.U_z2;
+                obj.b_z2 = modelParams.b_z2;
+                obj.W_r2 = modelParams.W_r2;
+                obj.U_r2 = modelParams.U_r2;
+                obj.b_r2 = modelParams.b_r2;
+                obj.W_h2 = modelParams.W_h2;
+                obj.U_h2 = modelParams.U_h2;
+                obj.b_h2 = modelParams.b_h2;
+                
+                % FC layers
+                obj.W_fc1 = modelParams.W_fc1;
+                obj.b_fc1 = modelParams.b_fc1;
+                obj.W_fc2 = modelParams.W_fc2;
+                obj.b_fc2 = modelParams.b_fc2;
+                
+                obj.trained = modelParams.trained;
+                
+                obj.resetHiddenStates();
+                
+                fprintf('Model loaded from %s\n', filename);
+                
+            catch ME
+                if strcmp(ME.identifier, 'KalmanNetNN:FileNotFound') || ...
+                   strcmp(ME.identifier, 'KalmanNetNN:InvalidFormat')
+                    rethrow(ME);
+                else
+                    error('KalmanNetNN:LoadError', ...
+                        'Error loading model from %s: %s', filename, ME.message);
+                end
+            end
         end
     end
 end

@@ -14,7 +14,7 @@ function K = computeKalmanGainKalmanNet(kalmanNet, T_H, P, R_n, r_n, stateDim)
 %   stateDim: Total state dimension
 %
 % Output:
-%   K: Kalman gain matrix
+%   K: Kalman gain matrix (size: [size(P,1), size(T_H,1)])
 
     % Extract state estimate from covariance (use diagonal as proxy for state uncertainty)
     stateEstimate = sqrt(diag(P));
@@ -25,8 +25,10 @@ function K = computeKalmanGainKalmanNet(kalmanNet, T_H, P, R_n, r_n, stateDim)
     % Compute Kalman gain using neural network
     K = kalmanNet.computeKalmanGain(innovation, stateEstimate, T_H);
     
-    % Ensure output dimensions match
-    [rows_expected, cols_expected] = size(T_H');
+    % Expected dimensions: K should be [size(P,1), size(T_H,1)]
+    % This matches the traditional formula K = P*T_H' / (T_H*P*T_H' + R_n)
+    rows_expected = size(P, 1);
+    cols_expected = size(T_H, 1);
     [rows_K, cols_K] = size(K);
     
     if rows_K ~= rows_expected || cols_K ~= cols_expected
