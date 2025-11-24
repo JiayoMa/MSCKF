@@ -297,7 +297,6 @@ fprintf('Total sequences: %d\n', length(allTrainingData.innovations));
 
 fprintf('Training for %d epochs...\n', numEpochs);
 learningRate = 0.001;
-epsilon = 1e-5;  % For numerical gradient computation
 
 for epoch = 1:numEpochs
     epochLoss = 0;

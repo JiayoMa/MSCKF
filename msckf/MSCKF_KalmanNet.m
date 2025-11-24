@@ -291,7 +291,7 @@ for state_k = kStart:(kEnd-1)
             if JcostNorm > msckfParams.maxGNCostNorm ...
                     || RCOND < msckfParams.minRCOND
                 
-                break;
+                continue;  % Skip this feature track and try next one
             else
                 map(:,end+1) = p_f_G;
                 numFeatureTracksResidualized = numFeatureTracksResidualized + 1;
